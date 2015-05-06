@@ -1,0 +1,4 @@
+build/
+dist/
+fannypack.egg-info/
+*.pyc
