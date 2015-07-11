@@ -22,14 +22,11 @@ requires = [
     'flask'
 ]
 
-with open('README.md') as f:
-    readme = f.read()
-
 setup(
     name='fannypack',
     version=fannypack.__version__,
     description='a set of utilities for flask',
-    long_description=readme + '\n\n',
+    long_description='',
     author='Andrei',
     author_email='andrei.zbikowski@gmail.com',
     url='http://github.com/b1naryth1ef/fannypack',
