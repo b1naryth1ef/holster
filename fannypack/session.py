@@ -1,5 +1,7 @@
 import json, time, logging
 
+from flask import current_app
+
 from uuid import uuid4
 from flask import request
 
@@ -12,15 +14,14 @@ def find_sessions_for_user(uid):
     """
     Attempts to find all sessions associated with a user.
     """
-    for key in redis.keys("session:*"):
+    for key in current_app.fanny.redis.keys("session:*"):
         sess = Session(key.split(":")[1])
         if sess['u'] == uid:
             yield sess
 
 class SessionProvider(object):
-    def __init__(self, name, redis, ttl=DEFAULT_SESSION_TTL):
+    def __init__(self, redis, ttl=DEFAULT_SESSION_TTL):
         self.redis = redis
-        self.name = name
         self.ttl = ttl
 
     def get(self, id=None):
@@ -45,7 +46,8 @@ class Session(object):
     def key(self):
         return self.prefix.format(self._id)
 
-    def is_new(self):
+    @property
+    def new(self):
         return not self._id
 
     def delete(self):
@@ -53,6 +55,11 @@ class Session(object):
         self._data = {}
         self._id = None
         self._changed = False
+
+    def get(self, key, default=None):
+        if key in self._data:
+            return self[key]
+        return default
 
     def __delitem__(self, item):
         self._changed = True
@@ -71,11 +78,11 @@ class Session(object):
 
         # Get current TTL
         self._id = self._id or str(uuid4())
-        ttl = int(self.provider.redis.ttl(self.key) or SESSION_TTL)
+        ttl = int(self.provider.redis.ttl(self.key) or self.provider.ttl)
 
         # Set cookie and key
         self.provider.redis.set(self.key, json.dumps(self._data))
-        self.provider.redis.expire(self.key, ttl if ttl != -1 else SESSION_TTL)
+        self.provider.redis.expire(self.key, ttl if ttl != -1 else self.provider.ttl)
         response.set_cookie("s", self._id, expires=(time.time() + ttl))
         return True
 

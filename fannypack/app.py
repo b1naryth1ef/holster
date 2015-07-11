@@ -1,17 +1,30 @@
 import sys, os
+
 from flask import current_app
+from redis import Redis
 
 from .filters import register_filters
-from .logging import setup_logging
+from .log import setup_logging
+from .session import SessionProvider
 
 class FannyPack(object):
     def __init__(self, app=None):
         self.app = app or current_app
+        self.redis = None
 
         self.init_app(self.app)
         self.load_views()
 
+        if "REDIS" in self.app.config:
+            self.init_redis(self.app.config.get("REDIS"))
+            self.sessions = SessionProvider(self.redis)
+            self.app.sessions = self.sessions
+
+    def init_redis(self, kwargs):
+        self.redis = Redis(**kwargs)
+
     def init_app(self, app):
+        app.fanny = self
         register_filters(app)
         setup_logging(app)
 
