@@ -8,12 +8,14 @@ from .log import setup_logging
 from .session import SessionProvider
 
 class FannyPack(object):
-    def __init__(self, app=None):
+    def __init__(self, app=None, auto_load_views=True):
         self.app = app or current_app
         self.redis = None
 
         self.init_app(self.app)
-        self.load_views()
+
+        if auto_load_views:
+            self.load_views()
 
         if "REDIS" in self.app.config:
             self.init_redis(self.app.config.get("REDIS"))
