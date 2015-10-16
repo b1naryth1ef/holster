@@ -7,7 +7,7 @@ from .filters import register_filters
 from .log import setup_logging
 from .session import SessionProvider
 
-class FannyPack(object):
+class Holster(object):
     def __init__(self, app=None, auto_load_views=True):
         self.app = app or current_app
         self.redis = None
@@ -26,7 +26,7 @@ class FannyPack(object):
         self.redis = Redis(**kwargs)
 
     def init_app(self, app):
-        app.fanny = self
+        app.holster = self
         register_filters(app)
         setup_logging(app)
 

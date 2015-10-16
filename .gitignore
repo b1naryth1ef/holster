@@ -1,4 +1,4 @@
 build/
 dist/
-fannypack.egg-info/
+holster.egg-info/
 *.pyc

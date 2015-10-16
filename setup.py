@@ -3,7 +3,7 @@
 import os
 import sys
 
-import fannypack
+import holster 
 
 try:
     from setuptools import setup
@@ -15,7 +15,7 @@ if sys.argv[-1] == 'publish':
     sys.exit()
 
 packages = [
-    'fannypack',
+    'holster',
 ]
 
 requires = [
@@ -23,16 +23,16 @@ requires = [
 ]
 
 setup(
-    name='fannypack',
-    version=fannypack.__version__,
+    name='holster',
+    version=holster.__version__,
     description='a set of utilities for flask',
     long_description='',
     author='Andrei',
     author_email='andrei.zbikowski@gmail.com',
-    url='http://github.com/b1naryth1ef/fannypack',
+    url='http://github.com/b1naryth1ef/holster',
     packages=packages,
     package_data={},
-    package_dir={'fannypack': 'fannypack'},
+    package_dir={'holster': 'holster'},
     include_package_data=True,
     install_requires=requires,
     license='Apache 2.0',
