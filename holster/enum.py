@@ -1,3 +1,5 @@
+from six import with_metaclass
+
 class BaseEnum(object):
     pass
 
@@ -48,8 +50,8 @@ class BaseEnumMeta(type):
             return self.attrs[self.order[item]]
 
 def Enum(*args):
-    class _T(BaseEnum):
-        __metaclass__ = BaseEnumMeta
+    class _T(with_metaclass(BaseEnumMeta)):
+        pass
 
     _T.order = args
     _T.attrs = {}

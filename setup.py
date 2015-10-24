@@ -19,7 +19,8 @@ packages = [
 ]
 
 requires = [
-    'flask'
+    'flask',
+    'six'
 ]
 
 setup(
