@@ -1,4 +1,4 @@
-import time, thread, logging, signal, sys, os, inspect
+import time, logging, signal, sys, os
 
 from flask import current_app
 
@@ -7,9 +7,10 @@ from datetime import datetime
 
 log = logging.getLogger(__name__)
 
+
 class Task(object):
     def __init__(self, task, now, delta):
-        self.redis = current_app.fanny.redis
+        self.redis = current_app.holster.redis
         self.task = task
         self.delta = delta
         self.last = (datetime.utcnow() - relativedelta(years=5)) if now else datetime.utcnow()
@@ -39,9 +40,10 @@ class Task(object):
         self.last_id = self.task.queue()
         self.last = datetime.utcnow()
 
+
 class Scheduler(object):
     def __init__(self, pidfile="/tmp/scheduler.pid"):
-        self.redis = current_app.fanny.redis
+        self.redis = current_app.holster.redis
         # Write PID to a file
         try:
             with open(pidfile, "w") as f:
@@ -67,9 +69,9 @@ class Scheduler(object):
         log.info("Starting Scheduler...")
         while True:
             time.sleep(.3)
-            if self.paused: continue
+            if self.paused:
+                continue
 
             for task in self.schedules:
                 if task.should_run():
                     task.run()
-

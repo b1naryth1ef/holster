@@ -1,4 +1,7 @@
-from flask import jsonify, request
+from flask import jsonify
+
+from .util import flashy
+
 
 class ResponseException(Exception):
     """
@@ -13,6 +16,7 @@ class ResponseException(Exception):
         """
         raise NotImplementedError("Must define to_response on `%s`" % self.__class__.__name__)
 
+
 class UserError(ResponseException):
     """
     Flashes a message and redirects a user.
@@ -25,6 +29,7 @@ class UserError(ResponseException):
     def to_response(self):
         return flashy(self.msg, self.etype, self.path)
 
+
 class APIError(ResponseException):
     def __init__(self, msg, status_code=200):
         self.msg = msg
@@ -32,7 +37,7 @@ class APIError(ResponseException):
 
     def to_response(self):
         resp = jsonify({
-            "message": msg,
+            "message": self.msg,
             "success": False
         })
         resp.status_code = self.status_code
@@ -42,4 +47,3 @@ class APIError(ResponseException):
     def ensure(condition, message):
         if not condition:
             raise APIError(message)
-

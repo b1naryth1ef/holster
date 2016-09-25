@@ -3,7 +3,7 @@
 import os
 import sys
 
-import holster 
+import holster
 
 try:
     from setuptools import setup
@@ -19,14 +19,13 @@ packages = [
 ]
 
 requires = [
-    'flask',
     'six'
 ]
 
 setup(
     name='holster',
     version=holster.__version__,
-    description='a set of utilities for flask',
+    description='a set of Python utilities',
     long_description='',
     author='Andrei',
     author_email='andrei.zbikowski@gmail.com',

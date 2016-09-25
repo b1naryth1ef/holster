@@ -1,41 +1,34 @@
 from six import with_metaclass
 
-class BaseEnum(object):
-    pass
 
 class EnumAttr(object):
-    def __init__(self, parent, content, index):
+    def __init__(self, parent, name, index, value):
         self.parent = parent
-        self.content = content
+        self.name = name
         self.index = index
+        self.value = value
 
     def __eq__(self, other):
         if isinstance(other, EnumAttr):
-            (self.index == other.index) or (self.content == other.content)
+            return (self.parent == other.parent) and (self.index == other.index)
 
-        if isinstance(other, int):
-            if self.index == other:
-                return True
-
-        return self.content == other
+        return self.value == other
 
     def __cmp__(self, other):
         if isinstance(other, EnumAttr):
             return self.index - other.index
 
-        if isinstance(other, int):
-            return self.index - other
-
-        return self.index - self.parent.ORDER.index(other)
+        return self.value.__cmp__(other)
 
     def __repr__(self):
-        return '<EnumAttr {}>'.format(self.content)
+        return '<EnumAttr {}>'.format(self.name)
 
     def __str__(self):
-        return self.content
+        return self.name
 
     def __int__(self):
         return self.index
+
 
 class BaseEnumMeta(type):
     def __getattr__(self, attr):
@@ -44,22 +37,34 @@ class BaseEnumMeta(type):
         raise AttributeError
 
     def __getitem__(self, item):
-        if isinstance(item, str):
-            return getattr(self, item)
-        else:
-            return self.attrs[self.order[item]]
+        return self.get(item)
 
-def Enum(*args):
+    def get(self, entry):
+        for attr in self.attrs.values():
+            if attr == entry or attr.name == entry or attr.value == entry:
+                return attr
+
+    @property
+    def ALL(self):
+        return self.attrs.keys()
+
+    @property
+    def ALL_VALUES(self):
+        return self.attrs.values()
+
+
+def Enum(*args, **kwargs):
     class _T(with_metaclass(BaseEnumMeta)):
         pass
 
-    _T.order = args
     _T.attrs = {}
+    _T.order = []
 
-    for index, entry in enumerate(args):
-        _T.attrs[entry] = EnumAttr(_T, entry, index)
-        # setattr(_T, entry, EnumAttr(_T, entry, index))
-        # setattr(_T, entry.upper(), getattr(_T, entry))
+    if args:
+        _T.order = args
+        _T.attrs = {e.lower(): EnumAttr(_T, e.lower(), i, e) for i, e in enumerate(args)}
+    else:
+        _T.order = []
+        _T.attrs = {k.lower(): EnumAttr(_T, k.lower(), v, v) for k, v in kwargs.items()}
 
     return _T
-

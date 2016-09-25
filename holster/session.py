@@ -10,14 +10,16 @@ log = logging.getLogger(__name__)
 # 5 days
 DEFAULT_SESSION_TTL = 60 * 60 * 24 * 5
 
+
 def find_sessions_for_user(uid):
     """
     Attempts to find all sessions associated with a user.
     """
-    for key in current_app.fanny.redis.keys("session:*"):
+    for key in current_app.holster.redis.keys("session:*"):
         sess = Session(key.split(":")[1])
         if sess['u'] == uid:
             yield sess
+
 
 class SessionProvider(object):
     def __init__(self, redis, ttl=DEFAULT_SESSION_TTL):
@@ -26,6 +28,7 @@ class SessionProvider(object):
 
     def get(self, id=None):
         return Session(self, id)
+
 
 class Session(object):
     def __init__(self, provider, id=None):
@@ -85,4 +88,3 @@ class Session(object):
         self.provider.redis.expire(self.key, ttl if ttl != -1 else self.provider.ttl)
         response.set_cookie("s", self._id, expires=(time.time() + ttl))
         return True
-

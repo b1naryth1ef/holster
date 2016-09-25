@@ -2,11 +2,12 @@ import json
 
 from flask import Response, request
 
+
 class APIResponse(Response):
     def __init__(self, obj={}):
         Response.__init__(self)
 
-        if not 'success' in obj:
+        if 'success' not in obj:
             obj['success'] = True
 
         if request.values.get("pretty") == '1':
@@ -18,4 +19,3 @@ class APIResponse(Response):
             self.data = json.dumps(obj)
 
         self.mimetype = "application/json"
-

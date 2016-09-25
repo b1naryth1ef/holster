@@ -4,14 +4,16 @@ import logging, os
 
 LEVELS = {
     "urllib3": logging.WARNING,
-    "requests": logging.WARNING,
+    "requests": logging.DEBUG,
 }
 
 FORMAT = "[%(levelname)s] %(asctime)s - %(name)s:%(lineno)d - %(message)s"
 
+
 def set_logging_levels():
     for log, lvl in LEVELS.items():
         logging.getLogger(log).setLevel(lvl)
+
 
 def setup_logging(app):
     logging.basicConfig(level=logging.DEBUG, format=FORMAT)
@@ -28,4 +30,3 @@ def setup_logging(app):
 
     root = logging.getLogger()
     root.addHandler(file_handler)
-
