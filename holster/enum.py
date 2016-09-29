@@ -1,4 +1,4 @@
-from six import with_metaclass
+import six
 
 
 class EnumAttr(object):
@@ -29,6 +29,9 @@ class EnumAttr(object):
     def __int__(self):
         return self.index
 
+    def __hash__(self):
+        return hash((self.name, self.index, self.value))
+
 
 class BaseEnumMeta(type):
     def __getattr__(self, attr):
@@ -40,29 +43,38 @@ class BaseEnumMeta(type):
         return self.get(item)
 
     def get(self, entry):
-        for attr in self.attrs.values():
+        for attr in six.itervalues(self.attrs):
             if attr == entry or attr.name == entry or attr.value == entry:
                 return attr
 
     @property
     def ALL(self):
-        return self.attrs.keys()
+        return set(self.attrs.keys())
 
     @property
     def ALL_VALUES(self):
-        return self.attrs.values()
+        return set(i.value for i in six.itervalues(self.attrs))
+
+
+def bitmask_enumerate(seq):
+    for i, e in enumerate(seq):
+        yield (1 << i), e
 
 
 def Enum(*args, **kwargs):
-    class _T(with_metaclass(BaseEnumMeta)):
+    class _T(six.with_metaclass(BaseEnumMeta)):
         pass
 
     _T.attrs = {}
     _T.order = []
 
     if args:
+        enumer = enumerate
+        if kwargs.get('bitmask', True):
+            enumer = bitmask_enumerate
+
         _T.order = args
-        _T.attrs = {e.lower(): EnumAttr(_T, e.lower(), i, e) for i, e in enumerate(args)}
+        _T.attrs = {e.lower(): EnumAttr(_T, e.lower(), i, e) for i, e in enumer(args)}
     else:
         _T.order = []
         _T.attrs = {k.lower(): EnumAttr(_T, k.lower(), v, v) for k, v in kwargs.items()}
