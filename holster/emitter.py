@@ -25,13 +25,17 @@ class EmitterSubscription(object):
         self.events = events
         self.prio = prio
         self.func = func
+        self.emitter = None
 
     def add(self, emitter):
+        self.emitter = emitter
         for event in self.events:
             emitter.event_handlers[self.prio][event].append(self)
         return self
 
-    def remove(self, emitter):
+    def remove(self, emitter=None):
+        emitter = emitter or self.emitter
+
         for event in self.events:
             emitter.event_handlers[self.prio][event].remove(self)
 
