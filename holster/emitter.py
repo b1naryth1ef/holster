@@ -50,7 +50,7 @@ class Emitter(object):
             func(*args, **kwargs)
 
     def emit(self, name, *args, **kwargs):
-        for prio in Priority.attrs.values():
+        for prio in [Priority.BEFORE, Priority.NONE, Priority.AFTER]:
             for listener in self.event_handlers[prio].get(name, []):
                 self._call(listener.func, args, kwargs)
 
