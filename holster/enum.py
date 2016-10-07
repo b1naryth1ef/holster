@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import six
 
 
@@ -65,7 +67,7 @@ def Enum(*args, **kwargs):
     class _T(six.with_metaclass(BaseEnumMeta)):
         pass
 
-    _T.attrs = {}
+    _T.attrs = OrderedDict()
     _T.order = []
 
     if args:
