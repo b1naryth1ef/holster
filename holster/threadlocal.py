@@ -17,6 +17,9 @@ class ThreadLocal(object):
         if gevent.getcurrent() in self.storage:
             del self.storage[gevent.getcurrent()]
 
+    def __contains__(self, key):
+        return key in self.get()
+
     def __getitem__(self, item):
         return self.get()[item]
 

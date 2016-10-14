@@ -60,3 +60,15 @@ class Emitter(object):
 
     def on(self, *args, **kwargs):
         return EmitterSubscription(args[:-1], kwargs.pop('priority', Priority.NONE), args[-1]).add(self)
+
+    def wait(self, *args, **kwargs):
+        from gevent.event import AsyncResult
+
+        result = AsyncResult()
+        match = args[-1]
+
+        def _f(e):
+            if match(e):
+                result.set(e)
+
+        return result.wait(kwargs.pop('timeout', None))

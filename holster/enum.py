@@ -49,6 +49,10 @@ class BaseEnumMeta(type):
             if attr == entry or attr.name == entry or attr.value == entry:
                 return attr
 
+    def add(self, key, value=None):
+        self.attrs[key.lower()] = EnumAttr(self, key.lower(), len(self.attrs), value or key)
+        return self.attrs[key.lower()]
+
     @property
     def ALL(self):
         return set(self.attrs.keys())
@@ -68,17 +72,14 @@ def Enum(*args, **kwargs):
         pass
 
     _T.attrs = OrderedDict()
-    _T.order = []
 
     if args:
         enumer = enumerate
         if kwargs.get('bitmask', True):
             enumer = bitmask_enumerate
 
-        _T.order = args
         _T.attrs = {e.lower(): EnumAttr(_T, e.lower(), i, e) for i, e in enumer(args)}
     else:
-        _T.order = []
         _T.attrs = {k.lower(): EnumAttr(_T, k.lower(), v, v) for k, v in kwargs.items()}
 
     return _T
