@@ -37,29 +37,33 @@ class EnumAttr(object):
 
 class BaseEnumMeta(type):
     def __getattr__(self, attr):
-        if attr.lower() in self.attrs:
-            return self.attrs[attr.lower()]
+        if attr.lower() in self._attrs:
+            return self._attrs[attr.lower()]
         raise AttributeError
 
     def __getitem__(self, item):
         return self.get(item)
 
     def get(self, entry):
-        for attr in six.itervalues(self.attrs):
+        for attr in six.itervalues(self._attrs):
             if attr == entry or attr.name == entry or attr.value == entry:
                 return attr
 
     def add(self, key, value=None):
-        self.attrs[key.lower()] = EnumAttr(self, key.lower(), len(self.attrs), value or key)
-        return self.attrs[key.lower()]
+        self._attrs[key.lower()] = EnumAttr(self, key.lower(), len(self._attrs), value or key)
+        return self._attrs[key.lower()]
 
     @property
-    def ALL(self):
-        return set(self.attrs.keys())
+    def keys_(self):
+        return set(self._attrs.keys())
 
     @property
-    def ALL_VALUES(self):
-        return set(i.value for i in six.itervalues(self.attrs))
+    def values_(self):
+        return set(i.value for i in six.itervalues(self._attrs))
+
+    @property
+    def attrs(self):
+        return set(self._attrs.values())
 
 
 def bitmask_enumerate(seq):
@@ -71,15 +75,15 @@ def Enum(*args, **kwargs):
     class _T(six.with_metaclass(BaseEnumMeta)):
         pass
 
-    _T.attrs = OrderedDict()
+    _T._attrs = OrderedDict()
 
     if args:
         enumer = enumerate
         if kwargs.get('bitmask', True):
             enumer = bitmask_enumerate
 
-        _T.attrs = {e.lower(): EnumAttr(_T, e.lower(), i, e) for i, e in enumer(args)}
+        _T._attrs = {e.lower(): EnumAttr(_T, e.lower(), i, e) for i, e in enumer(args)}
     else:
-        _T.attrs = {k.lower(): EnumAttr(_T, k.lower(), v, v) for k, v in kwargs.items()}
+        _T._attrs = {k.lower(): EnumAttr(_T, k.lower(), v, v) for k, v in kwargs.items()}
 
     return _T

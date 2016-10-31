@@ -55,7 +55,7 @@ class Emitter(object):
     def __init__(self, wrapper=None):
         self.wrapper = wrapper
         self.event_handlers = {
-            k: defaultdict(list) for k in Priority.attrs.values()
+            k: defaultdict(list) for k in Priority.attrs
         }
 
     def _call(self, func, args, kwargs):
