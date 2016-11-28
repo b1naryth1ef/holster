@@ -29,11 +29,6 @@ class EmitterSubscription(object):
         self.events = events
         self.func = func
 
-        if not hasattr(self.func, 'subscriptions'):
-            self.func.subscriptions = []
-
-        self.func.subscriptions.append(self)
-
         self.priority = priority
         self.conditional = conditional
         self.metadata = metadata or {}
