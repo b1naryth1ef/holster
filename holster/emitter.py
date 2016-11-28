@@ -25,11 +25,18 @@ class Event(object):
 
 
 class EmitterSubscription(object):
-    def __init__(self, events, func, priority=Priority.NONE, conditional=None):
+    def __init__(self, events, func, priority=Priority.NONE, conditional=None, metadata=None):
         self.events = events
         self.func = func
+
+        if not hasattr(self.func, 'subscriptions'):
+            self.func.subscriptions = []
+
+        self.func.subscriptions.append(self)
+
         self.priority = priority
         self.conditional = conditional
+        self.metadata = metadata or {}
         self.emitter = None
 
     def __call__(self, *args, **kwargs):
