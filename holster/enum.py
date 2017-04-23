@@ -16,6 +16,11 @@ class EnumAttr(object):
 
         return self.value == other
 
+    def __cmp__(self, other):
+        if isinstance(other, EnumAttr):
+            return self.index - other.index
+        return self.value.__cmp__(other)
+
     def __lt__(self, other):
         if isinstance(other, EnumAttr):
             return self.index >= other.index
