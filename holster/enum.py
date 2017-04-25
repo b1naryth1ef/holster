@@ -23,15 +23,15 @@ class EnumAttr(object):
 
     def __lt__(self, other):
         if isinstance(other, EnumAttr):
-            return self.index <= other.index
+            return self.index < other.index
 
-        return self.index <= other
+        return self.index < other
 
     def __gt__(self, other):
         if isinstance(other, EnumAttr):
-            return self.index >= other.index
+            return self.index > other.index
 
-        return self.index >= other
+        return self.index > other
 
     def __repr__(self):
         return '<EnumAttr {}>'.format(self.name)
