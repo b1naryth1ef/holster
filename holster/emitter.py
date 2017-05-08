@@ -54,7 +54,8 @@ class EmitterSubscription(object):
         emitter = emitter or self.emitter
 
         for event in self.events:
-            emitter.event_handlers[self.priority][event].remove(self)
+            if self in emitter.event_handlers[self.priority][event]:
+                emitter.event_handlers[self.priority][event].remove(self)
 
 
 class Emitter(object):
