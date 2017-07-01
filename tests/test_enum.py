@@ -9,10 +9,16 @@ class EnumTestCase(TestCase):
 
         self.assertEqual(enum.a, enum.a)
         self.assertNotEqual(enum.a, enum.b)
+
         self.assertLess(enum.b, enum.e)
         self.assertLess(enum.a, enum.b)
         self.assertGreater(enum.g, enum.a)
         self.assertGreater(enum.g, enum.f)
+        
+        self.assertLessEqual(enum.c, enum.c)
+        self.assertLessEqual(enum.c, enum.d)
+        self.assertGreaterEqual(enum.e, enum.e)
+        self.assertGreaterEqual(enum.e, enum.d)
 
         self.assertEqual(enum.a.index, 1)
         self.assertEqual(enum.b.index, 2)
