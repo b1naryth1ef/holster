@@ -14,7 +14,7 @@ class EnumTestCase(TestCase):
         self.assertLess(enum.a, enum.b)
         self.assertGreater(enum.g, enum.a)
         self.assertGreater(enum.g, enum.f)
-        
+
         self.assertLessEqual(enum.c, enum.c)
         self.assertLessEqual(enum.c, enum.d)
         self.assertGreaterEqual(enum.e, enum.e)

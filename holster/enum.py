@@ -32,7 +32,7 @@ class EnumAttr(object):
             return self.index > other.index
 
         return self.index > other
-    
+
     def __le__(self, other):
         if isinstance(other, EnumAttr):
             return self.index <= other.index
