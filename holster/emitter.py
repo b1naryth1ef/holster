@@ -38,6 +38,10 @@ class EmitterSubscription(object):
         self.metadata = metadata or {}
         self.emitter = None
 
+    def __del__(self):
+        if self.emitter:
+            self.remove()
+
     def __call__(self, *args, **kwargs):
         if callable(self.conditional):
             if not self.conditional(*args, **kwargs):
@@ -54,7 +58,8 @@ class EmitterSubscription(object):
         emitter = emitter or self.emitter
 
         for event in self.events:
-            emitter.event_handlers[self.priority][event].remove(self)
+            if self in emitter.event_handlers[self.priority][event]:
+                emitter.event_handlers[self.priority][event].remove(self)
 
 
 class Emitter(object):

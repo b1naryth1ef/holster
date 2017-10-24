@@ -19,8 +19,31 @@ class EnumAttr(object):
     def __cmp__(self, other):
         if isinstance(other, EnumAttr):
             return self.index - other.index
-
         return self.value.__cmp__(other)
+
+    def __lt__(self, other):
+        if isinstance(other, EnumAttr):
+            return self.index < other.index
+
+        return self.index < other
+
+    def __gt__(self, other):
+        if isinstance(other, EnumAttr):
+            return self.index > other.index
+
+        return self.index > other
+
+    def __le__(self, other):
+        if isinstance(other, EnumAttr):
+            return self.index <= other.index
+
+        return self.index <= other
+
+    def __ge__(self, other):
+        if isinstance(other, EnumAttr):
+            return self.index >= other.index
+
+        return self.index >= other
 
     def __repr__(self):
         return '<EnumAttr {}>'.format(self.name)

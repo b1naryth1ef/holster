@@ -14,6 +14,14 @@ if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist upload')
     sys.exit()
 
+
+def run_tests():
+    import unittest
+    test_loader = unittest.TestLoader()
+    test_suite = test_loader.discover('tests', pattern='test_*.py')
+    return test_suite
+
+
 packages = [
     'holster',
 ]
@@ -35,17 +43,7 @@ setup(
     package_dir={'holster': 'holster'},
     include_package_data=True,
     install_requires=requires,
+    test_suite='setup.run_tests',
     license='Apache 2.0',
     zip_safe=False,
-    classifiers=(
-        'Development Status :: 3 - Alpha',
-        'Intended Audience :: Developers',
-        'Natural Language :: English',
-        'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
-    ),
 )
