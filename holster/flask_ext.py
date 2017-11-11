@@ -42,7 +42,7 @@ class Holster(object):
 
         self.app = app or current_app
         if self.app:
-            self.init_app(self.app)
+            self.app.before_first_request(self.init_app)
 
         # Optionally initialize redis
         self.redis = None
@@ -56,10 +56,10 @@ class Holster(object):
             self.sessions = SessionProvider(self.redis)
             self.app.sessions = self.sessions
 
-    def init_app(self, app):
-        app.holster = self
-        register_filters(app)
-        setup_logging(app)
+    def init_app(self):
+        self.app.holster = self
+        register_filters(self.app)
+        setup_logging(self.app)
 
         if self.auto_load_views:
             map(self.app.register_blueprint, ViewFinder.get_views())

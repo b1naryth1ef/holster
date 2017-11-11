@@ -37,7 +37,7 @@ setup(
     long_description='',
     author='Andrei',
     author_email='andrei.zbikowski@gmail.com',
-    url='http://github.com/b1naryth1ef/holster',
+    url='https://github.com/b1naryth1ef/holster',
     packages=packages,
     package_data={},
     package_dir={'holster': 'holster'},

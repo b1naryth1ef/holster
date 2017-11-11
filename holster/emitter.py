@@ -2,19 +2,25 @@ import gevent
 
 from collections import defaultdict
 from gevent.event import AsyncResult
+from gevent.queue import Queue, Full
 
 from .enum import Enum
 
 
 Priority = Enum(
-        'BEFORE',
-        'NONE',
-        'AFTER',
+    # BEFORE is the most dangerous priority level. Every event that flows through
+    #  the given emitter instance will be dispatched _sequentially_ to all BEFORE
+    #  handlers. Until these before handlers complete execution, no other event
+    #  will be allowed to continue. Any exceptions raised will be ignored.
+    'BEFORE',
+    # SEQUENTIAL guarentees that all events your handler recieves will be ordered
+    #  when looked at in isolation. SEQUENTIAL handlers will not block other handlers,
+    #  but do use a queue internally and thus can fall behind.
+    'SEQUENTIAL',
+    # NONE provides no guarentees around the ordering or execution of events, sans
+    #  that BEFORE handlers will always complete before any NONE handlers are called.
+    'NONE',
 )
-
-
-class Stop(Exception):
-    pass
 
 
 class Event(object):
@@ -29,68 +35,97 @@ class Event(object):
 
 
 class EmitterSubscription(object):
-    def __init__(self, events, func, priority=Priority.NONE, conditional=None, metadata=None):
+    def __init__(self, events, callback, priority=Priority.NONE, conditional=None, metadata=None, max_queue_size=8096):
         self.events = events
-        self.func = func
-
+        self.callback = callback
         self.priority = priority
         self.conditional = conditional
         self.metadata = metadata or {}
-        self.emitter = None
+        self.max_queue_size = max_queue_size
+
+        self._emitter = None
+        self._queue = None
+        self._queue_greenlet = None
+
+        if priority is Priority.SEQUENTIAL:
+            self._queue_greenlet = gevent.spawn(self._queue_handler)
 
     def __del__(self):
-        if self.emitter:
-            self.remove()
+        if self._emitter:
+            self.detach()
+
+        if self._queue_greenlet:
+            self._queue_greenlet.kill()
 
     def __call__(self, *args, **kwargs):
+        if self._queue is not None:
+            try:
+                self._queue.put_nowait((args, kwargs))
+            except Full:
+                # TODO: warning
+                pass
+            return
+
         if callable(self.conditional):
             if not self.conditional(*args, **kwargs):
                 return
-        return self.func(*args, **kwargs)
+        return self.callback(*args, **kwargs)
 
-    def add(self, emitter):
-        self.emitter = emitter
+    def _queue_handler(self):
+        self._queue = Queue(self.max_queue_size)
+
+        while True:
+            args, kwargs = self._queue.get()
+            try:
+                self.callback(*args, **kwargs)
+            except Exception:
+                # TODO: warning
+                pass
+
+    def attach(self, emitter):
+        self._emitter = emitter
+
         for event in self.events:
-            emitter.event_handlers[self.priority][event].append(self)
+            self._emitter.event_handlers[self.priority][event].append(self)
+
         return self
 
-    def remove(self, emitter=None):
-        emitter = emitter or self.emitter
+    def detach(self, emitter=None):
+        emitter = emitter or self._emitter
 
         for event in self.events:
             if self in emitter.event_handlers[self.priority][event]:
                 emitter.event_handlers[self.priority][event].remove(self)
 
+    def remove(self, emitter=None):
+        self.detach(emitter)
+
 
 class Emitter(object):
-    def __init__(self, spawn_each=False):
-        self.spawn_each = spawn_each
+    def __init__(self):
         self.event_handlers = {
             k: defaultdict(list) for k in Priority.attrs
         }
 
-    def _call(self, func, args, kwargs):
-        try:
-            func(*args, **kwargs)
-        except Stop:
-            pass
-
     def emit(self, name, *args, **kwargs):
-        for prio in [Priority.BEFORE, Priority.NONE, Priority.AFTER]:
-            greenlets = []
+        # First, execute all BEFORE handlers sequentially
+        for listener in self.event_handlers[Priority.BEFORE].get(name, []):
+            try:
+                listener(*args, **kwargs)
+            except Exception:
+                pass
 
-            for listener in self.event_handlers[prio].get(name, []) + self.event_handlers[prio].get('', []):
-                if self.spawn_each:
-                    greenlets.append(gevent.spawn(self._call, listener, args, kwargs))
-                else:
-                    self._call(listener, args, kwargs)
+        # Next enqueue all sequential handlers. This just puts stuff into a queue
+        #  without blocking, so we don't have to worry too much
+        for listener in self.event_handlers[Priority.SEQUENTIAL].get(name, []):
+            listener(*args, **kwargs)
 
-            if greenlets:
-                for greenlet in greenlets:
-                    greenlet.join()
+        # Finally just spawn for everything else
+        for listener in self.event_handlers[Priority.NONE].get(name, []):
+            gevent.spawn(listener, *args, **kwargs)
 
     def on(self, *args, **kwargs):
-        return EmitterSubscription(args[:-1], args[-1], **kwargs).add(self)
+        return EmitterSubscription(args[:-1], args[-1], **kwargs).attach(self)
 
     def once(self, *args, **kwargs):
         result = AsyncResult()
@@ -98,7 +133,7 @@ class Emitter(object):
 
         def _f(e):
             result.set(e)
-            li.remove()
+            li.detach()
 
         li = self.on(*args + (_f, ))
 
